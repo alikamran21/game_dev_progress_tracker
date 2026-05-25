@@ -1,28 +1,17 @@
 // src/firebase.js
-// ─────────────────────────────────────────────────────────────────────────────
-// SETUP INSTRUCTIONS:
-// 1. Go to https://console.firebase.google.com
-// 2. Create a new project (e.g. "unity-tracker")
-// 3. Click "Add app" → Web app
-// 4. Copy the firebaseConfig object and paste it below
-// 5. In Firebase console: Build → Realtime Database → Create database
-//    Start in TEST MODE for development (you can add rules later)
-// 6. Copy your Realtime Database URL into databaseURL below
-// ─────────────────────────────────────────────────────────────────────────────
-
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
-
+ 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "YOUR_API_KEY",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL || "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "YOUR_PROJECT_ID",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "YOUR_PROJECT.appspot.com",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "YOUR_SENDER_ID",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "YOUR_APP_ID",
+  apiKey: "AIzaSyBh9aypQIcNZGmAZkU5B7thL5gBUiDIdH8",
+  authDomain: "unity-progresstracker.firebaseapp.com",
+  databaseURL: "https://unity-progresstracker-default-rtdb.firebaseio.com",
+  projectId: "unity-progresstracker",
+  storageBucket: "unity-progresstracker.firebasestorage.app",
+  messagingSenderId: "939700256642",
+  appId: "1:939700256642:web:3f6aa50a3b751dcb89199b",
 };
-
+ 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 export default app;
