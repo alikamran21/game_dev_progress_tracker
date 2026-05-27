@@ -1,26 +1,27 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
+// Simple CSS-only ambient background — no Three.js dep here
 const ORBS = [
-  { w:320, h:320, color:'rgba(124,111,212,0.25)', top:'5%',  left:'2%',  dur:'18s' },
-  { w:260, h:260, color:'rgba(26,173,122,0.2)',   top:'60%', left:'75%', dur:'22s' },
-  { w:200, h:200, color:'rgba(124,111,212,0.15)', top:'40%', left:'50%', dur:'15s' },
-  { w:180, h:180, color:'rgba(251,187,36,0.12)',  top:'80%', left:'10%', dur:'25s' },
-  { w:150, h:150, color:'rgba(26,173,122,0.12)',  top:'15%', left:'80%', dur:'20s' },
+  { w:500, h:500, color:'rgba(108,95,199,0.12)',  top:'-10%', left:'-5%',  dur:'20s', delay:'0s'   },
+  { w:400, h:400, color:'rgba(13,138,96,0.10)',   top:'60%',  left:'70%',  dur:'25s', delay:'-8s'  },
+  { w:300, h:300, color:'rgba(108,95,199,0.08)',  top:'40%',  left:'40%',  dur:'18s', delay:'-4s'  },
+  { w:250, h:250, color:'rgba(251,191,36,0.06)',  top:'80%',  left:'5%',   dur:'30s', delay:'-12s' },
+  { w:200, h:200, color:'rgba(13,138,96,0.08)',   top:'10%',  left:'75%',  dur:'22s', delay:'-6s'  },
 ];
 
 export default function FloatingOrbs() {
   return (
     <div style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:0, overflow:'hidden' }}>
-      {ORBS.map((o,i) => (
+      {ORBS.map((o, i) => (
         <div key={i} style={{
           position:'absolute',
           width: o.w, height: o.h,
-          borderRadius: '50%',
+          borderRadius:'50%',
           background: o.color,
           top: o.top, left: o.left,
-          filter: 'blur(55px)',
-          animation: `float-orb ${o.dur} ease-in-out infinite`,
-          animationDelay: `${i * -3}s`,
+          filter:'blur(80px)',
+          animation:`float ${o.dur} ease-in-out infinite`,
+          animationDelay: o.delay,
         }} />
       ))}
     </div>

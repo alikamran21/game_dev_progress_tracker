@@ -1,169 +1,132 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
-import AnimatedCounter from './AnimatedCounter';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
-function Avatar({ name, slot, size = 44 }) {
-  const initials = name.slice(0, 2).toUpperCase();
-  const isP1 = slot === 'p1';
-  const [pulse, setPulse] = useState(false);
-
+function AnimatedNumber({ value, color }) {
+  const [display, setDisplay] = useState(value);
+  const prev = useRef(value);
   useEffect(() => {
-    setPulse(true);
-    const t = setTimeout(() => setPulse(false), 600);
-    return () => clearTimeout(t);
-  }, [name]);
-
-  return (
-    <div style={{ position:'relative', flexShrink:0 }}>
-      {pulse && (
-        <div style={{
-          position:'absolute', inset:-4,
-          borderRadius:'50%',
-          border: `2px solid ${isP1 ? '#8b7ee0' : '#22c68a'}`,
-          animation:'pulse-ring 0.6s ease-out forwards',
-        }} />
-      )}
-      <div style={{
-        width: size, height: size, borderRadius: size * 0.38,
-        background: isP1
-          ? 'linear-gradient(135deg, #8b7ee0, #6c5fc7)'
-          : 'linear-gradient(135deg, #22c68a, #16a370)',
-        boxShadow: isP1
-          ? '3px 3px 8px rgba(108,95,199,0.45), -2px -2px 6px rgba(255,255,255,0.9)'
-          : '3px 3px 8px rgba(22,163,112,0.45), -2px -2px 6px rgba(255,255,255,0.9)',
-        display:'flex', alignItems:'center', justifyContent:'center',
-        color:'white', fontWeight:800, fontSize: size * 0.36,
-        letterSpacing:'-0.5px',
-        animation: 'glow-pulse 3s ease-in-out infinite',
-        animationDelay: isP1 ? '0s' : '1.5s',
-      }}>
-        {initials}
-      </div>
-    </div>
-  );
-}
-
-function LiveDot() {
-  return (
-    <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-      <div style={{ position:'relative', width:8, height:8 }}>
-        <div style={{
-          width:8, height:8, borderRadius:'50%', background:'#22c68a',
-          position:'absolute',
-        }} />
-        <div style={{
-          width:8, height:8, borderRadius:'50%', background:'#22c68a',
-          position:'absolute',
-          animation:'pulse-ring 1.5s ease-out infinite',
-        }} />
-      </div>
-      <span style={{ fontSize:10, fontWeight:700, color:'#1aad7a' }}>LIVE</span>
-    </div>
-  );
+    if (value === prev.current) return;
+    const start = prev.current; prev.current = value;
+    const steps = 24; let step = 0;
+    const t = setInterval(() => {
+      step++;
+      setDisplay(Math.round(start + (value-start) * (1 - Math.pow(1-step/steps,3))));
+      if (step >= steps) { setDisplay(value); clearInterval(t); }
+    }, 16);
+    return () => clearInterval(t);
+  }, [value]);
+  return <span style={{ color, fontVariantNumeric:'tabular-nums' }}>{display}</span>;
 }
 
 export default function PlayerCard({ name, slot, doneCount, total, isMe }) {
   const cardRef = useRef(null);
-  const pct = total ? Math.round(doneCount / total * 100) : 0;
+  const pct = total ? Math.round(doneCount/total*100) : 0;
   const isP1 = slot === 'p1';
-  const color = isP1 ? '#7c6fd4' : '#1aad7a';
-  const lightColor = isP1 ? '#ede9ff' : '#d4f5ea';
+  const color = isP1 ? '#9d8fef' : '#22c68a';
+  const colorDark = isP1 ? '#6c5fc7' : '#0d8a60';
+  const glow = isP1 ? 'rgba(124,111,212,0.4)' : 'rgba(26,173,122,0.4)';
+  const glowStrong = isP1 ? 'rgba(124,111,212,0.7)' : 'rgba(26,173,122,0.7)';
+  const anim = isP1 ? 'pulse-glow-p1' : 'pulse-glow-p2';
 
-  const handleMouseMove = useCallback((e) => {
+  const onMove = (e) => {
     const card = cardRef.current;
     if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    card.style.transform = `perspective(600px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px) scale(1.01)`;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    if (cardRef.current) {
-      cardRef.current.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) translateY(0) scale(1)';
-    }
-  }, []);
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX-r.left)/r.width - 0.5;
+    const y = (e.clientY-r.top)/r.height - 0.5;
+    card.style.transform = `perspective(800px) rotateY(${x*14}deg) rotateX(${-y*14}deg) translateZ(10px)`;
+    card.style.boxShadow = `${-x*20}px ${-y*20}px 40px ${glow}, 0 0 60px ${glow}`;
+  };
+  const onLeave = () => {
+    if (!cardRef.current) return;
+    cardRef.current.style.transform = 'perspective(800px) rotateY(0) rotateX(0) translateZ(0)';
+    cardRef.current.style.boxShadow = '';
+  };
 
   return (
-    <div
-      ref={cardRef}
-      className="clay tilt-card"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+    <div ref={cardRef} onMouseMove={onMove} onMouseLeave={onLeave}
+      className="glass"
       style={{
-        padding:'18px 20px',
-        outline: isMe ? `2px solid ${color}55` : 'none',
-        position:'relative', overflow:'hidden',
-        transition:'transform 0.15s ease, box-shadow 0.25s ease',
+        padding:'22px', position:'relative', overflow:'hidden',
+        outline: isMe ? `1px solid ${color}55` : '1px solid transparent',
+        transition:'transform 0.12s ease, box-shadow 0.3s ease',
+        transformStyle:'preserve-3d',
         cursor:'default',
-      }}
-    >
-      {/* Animated bg blob */}
+      }}>
+
+      {/* BG glow blob */}
       <div style={{
-        position:'absolute', bottom:-30, right:-30,
-        width:120, height:120, borderRadius:'50%',
-        background:`${color}12`,
-        animation:`float-orb ${isP1 ? '8s' : '10s'} ease-in-out infinite`,
-        pointerEvents:'none',
+        position:'absolute', width:180, height:180, borderRadius:'50%',
+        background:`radial-gradient(circle, ${glow} 0%, transparent 70%)`,
+        bottom:-60, right:-60, pointerEvents:'none',
+        animation:`float ${isP1?'8s':'11s'} ease-in-out infinite`,
       }} />
       <div style={{
-        position:'absolute', top:-20, left:-20,
-        width:80, height:80, borderRadius:'50%',
-        background:`${color}08`,
-        animation:`float-orb ${isP1 ? '12s' : '9s'} ease-in-out infinite`,
-        animationDelay:'-3s',
-        pointerEvents:'none',
+        position:'absolute', width:100, height:100, borderRadius:'50%',
+        background:`radial-gradient(circle, ${glow} 0%, transparent 70%)`,
+        top:-30, left:-30, pointerEvents:'none',
+        animation:`float ${isP1?'12s':'9s'} ease-in-out infinite`,
+        animationDelay:'-4s',
       }} />
 
       {isMe && (
         <div style={{
-          position:'absolute', top:12, right:12,
-          display:'flex', alignItems:'center', gap:8,
+          position:'absolute', top:14, right:14, display:'flex', alignItems:'center', gap:6,
         }}>
-          <LiveDot />
-          <div style={{
-            background: lightColor, color, borderRadius:10,
-            fontSize:10, fontWeight:800, padding:'3px 8px',
-            letterSpacing:'0.05em',
-          }}>YOU</div>
+          <div style={{ position:'relative', width:8, height:8 }}>
+            <div style={{ width:8,height:8,borderRadius:'50%',background:'#22c68a',position:'absolute' }} />
+            <div style={{ width:8,height:8,borderRadius:'50%',background:'#22c68a',position:'absolute',animation:'ring-out 1.5s ease-out infinite' }} />
+          </div>
+          <span style={{ fontSize:10, fontWeight:800, color:'#22c68a', letterSpacing:'0.08em' }}>LIVE</span>
+          <div style={{ background:`${color}22`, border:`1px solid ${color}44`, color, borderRadius:8, fontSize:10, fontWeight:800, padding:'2px 8px' }}>YOU</div>
         </div>
       )}
 
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
-        <Avatar name={name} slot={slot} size={46} />
+      {/* Avatar */}
+      <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
+        <div style={{
+          width:52, height:52, borderRadius:18, flexShrink:0,
+          background:`linear-gradient(135deg,${color},${colorDark})`,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:18, fontWeight:900, color:'white', letterSpacing:'-0.5px',
+          boxShadow:`0 0 30px ${glow}`,
+          animation:`${anim} 3s ease-in-out infinite`,
+          animationDelay: isP1 ? '0s' : '1.5s',
+        }}>
+          {name.slice(0,2).toUpperCase()}
+        </div>
         <div>
-          <div style={{ fontWeight:800, fontSize:16, color:'var(--text-primary)', marginBottom:2 }}>{name}</div>
-          <div style={{ fontSize:12, color:'var(--text-muted)', fontFamily:'var(--font-body)' }}>
-            <AnimatedCounter value={doneCount} style={{ fontWeight:700, color }} /> / {total} topics
+          <div style={{ fontWeight:800, fontSize:17, color:'var(--text)', marginBottom:3 }}>{name}</div>
+          <div style={{ fontSize:12, color:'var(--text2)', fontFamily:'var(--font-body)' }}>
+            <AnimatedNumber value={doneCount} color={color} /> <span style={{color:'var(--text3)'}}>/ {total} topics</span>
           </div>
         </div>
       </div>
 
-      <div style={{ display:'flex', alignItems:'baseline', gap:4, marginBottom:10 }}>
-        <AnimatedCounter value={pct} style={{
-          fontSize:34, fontWeight:900, color,
-          letterSpacing:'-1px', lineHeight:1,
-        }} />
-        <span style={{ fontSize:16, fontWeight:700, color }}>{pct > 0 ? '%' : '%'}</span>
+      {/* Big pct */}
+      <div style={{ marginBottom:12 }}>
+        <div style={{
+          fontSize:48, fontWeight:900, lineHeight:1, letterSpacing:'-2px',
+          background:`linear-gradient(135deg,${color},${colorDark})`,
+          WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+          backgroundClip:'text',
+        }}>
+          <AnimatedNumber value={pct} color={color} />
+          <span style={{ fontSize:20 }}>%</span>
+        </div>
       </div>
 
-      <div className="progress-track" style={{ marginBottom:8 }}>
+      {/* Bar */}
+      <div className="progress-track" style={{ height:10, marginBottom:8 }}>
         <div className={`progress-fill-${slot}`} style={{ width:`${pct}%` }} />
       </div>
-
-      <div style={{ fontSize:12, color:'var(--text-muted)', fontFamily:'var(--font-body)' }}>
-        {total - doneCount} topics remaining
-      </div>
+      <div style={{ fontSize:12, color:'var(--text3)', fontFamily:'var(--font-body)' }}>{total-doneCount} topics remaining</div>
 
       {pct === 100 && (
-        <div style={{
-          position:'absolute', inset:0, borderRadius:'var(--radius-lg)',
-          background:'linear-gradient(135deg, rgba(124,111,212,0.08), rgba(26,173,122,0.08))',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          fontSize:32,
-          animation:'pop 0.5s ease',
-        }}>
-          🎉
-        </div>
+        <motion.div initial={{scale:0}} animate={{scale:1}} transition={{type:'spring',stiffness:200}}
+          style={{ position:'absolute', inset:0, borderRadius:24, background:'rgba(124,111,212,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>
+          🏆
+        </motion.div>
       )}
     </div>
   );
