@@ -25,7 +25,6 @@ export default function PlayerCard({ name, slot, doneCount, total, isMe }) {
   const color = isP1 ? '#9d8fef' : '#22c68a';
   const colorDark = isP1 ? '#6c5fc7' : '#0d8a60';
   const glow = isP1 ? 'rgba(124,111,212,0.4)' : 'rgba(26,173,122,0.4)';
-  const glowStrong = isP1 ? 'rgba(124,111,212,0.7)' : 'rgba(26,173,122,0.7)';
   const anim = isP1 ? 'pulse-glow-p1' : 'pulse-glow-p2';
 
   const onMove = (e) => {
