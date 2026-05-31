@@ -97,7 +97,7 @@ function StatStrip({ myDoneCount, total, mySlot }) {
     { label:'Done',      val: myDoneCount, suffix:'' },
     { label:'Progress',  val: pct,         suffix:'%' },
     { label:'Left',      val: remaining,   suffix:'' },
-    { label:'Phases',    val: 17,          suffix:'' },
+    { label:'Phases',    val: 25,          suffix:'' },
   ];
   return (
     <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginBottom:18 }}>
