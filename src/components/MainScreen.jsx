@@ -7,6 +7,95 @@ import CompareView from './CompareView';
 import Scene3D from './Scene3D';
 import Confetti from './Confetti';
 
+/* ── Behind notification popup ─────────────────────────────────── */
+function BehindNotification({ visible, gap, partnerName, onDismiss }) {
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          key="behind-notif"
+          initial={{ opacity: 0, y: -24, scale: 0.92 }}
+          animate={{ opacity: 1, y: 0,  scale: 1    }}
+          exit={{    opacity: 0, y: -16, scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+          onClick={onDismiss}
+          style={{
+            position: 'fixed',
+            top: 80,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            width: 'min(92vw, 360px)',
+            borderRadius: 18,
+            overflow: 'hidden',
+            background: 'rgba(15,10,22,0.82)',
+            border: '1px solid rgba(255,80,80,0.35)',
+            backdropFilter: 'blur(22px)',
+            WebkitBackdropFilter: 'blur(22px)',
+            boxShadow: '0 0 0 1px rgba(255,255,255,0.04), 0 12px 48px rgba(220,50,50,0.28)',
+            cursor: 'pointer',
+          }}
+        >
+          {/* red glow strip at top */}
+          <div style={{
+            height: 3,
+            background: 'linear-gradient(90deg,#ff3c3c,#ff8c42,#ff3c3c)',
+            backgroundSize: '200% 100%',
+            animation: 'behindSlide 1.8s linear infinite',
+          }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px 16px' }}>
+            {/* pulsing emoji */}
+            <motion.div
+              animate={{ scale: [1, 1.25, 1] }}
+              transition={{ duration: 0.7, repeat: Infinity, repeatDelay: 1.2 }}
+              style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}
+            >
+              🔥
+            </motion.div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
+                textTransform: 'uppercase', color: '#ff5a5a',
+                fontFamily: 'var(--font)', marginBottom: 3,
+              }}>
+                You&apos;re behind!
+              </div>
+              <div style={{
+                fontSize: 14, fontWeight: 700, color: 'var(--text)',
+                fontFamily: 'var(--font-body)', lineHeight: 1.35,
+              }}>
+                {partnerName} is{' '}
+                <span style={{ color: '#ff7a7a' }}>{gap} topic{gap !== 1 ? 's' : ''} ahead</span>
+                {' '}— pick up the pace!
+              </div>
+            </div>
+
+            {/* dismiss X */}
+            <div style={{
+              fontSize: 20, color: 'rgba(255,255,255,0.25)',
+              lineHeight: 1, flexShrink: 0, fontWeight: 300,
+            }}>×</div>
+          </div>
+
+          {/* countdown drain bar */}
+          <motion.div
+            initial={{ scaleX: 1 }}
+            animate={{ scaleX: 0 }}
+            transition={{ duration: 6, ease: 'linear' }}
+            style={{
+              height: 3,
+              background: 'linear-gradient(90deg,#ff3c3c,#ff8c42)',
+              transformOrigin: 'left',
+            }}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ── Copy room code button ─────────────────────────────────────── */
 function CopyButton({ roomId }) {
   const [copied, setCopied] = useState(false);
@@ -126,9 +215,12 @@ export default function MainScreen({
   myDoneCount, partnerDoneCount, total,
   isDone, countDoneForPhase, toggleItem, leaveRoom,
 }) {
-  const [tab, setTab]         = useState('phases');
-  const [confetti, setConfetti] = useState(0);
-  const prevDone              = useRef(myDoneCount);
+  const [tab, setTab]             = useState('phases');
+  const [confetti, setConfetti]   = useState(0);
+  const [showBehind, setShowBehind] = useState(false);
+  const prevDone                  = useRef(myDoneCount);
+  const prevPartnerDone           = useRef(partnerDoneCount);
+  const behindTimer               = useRef(null);
 
   // Fire confetti every 10 topics or on completion
   useEffect(() => {
@@ -140,10 +232,41 @@ export default function MainScreen({
     prevDone.current = myDoneCount;
   }, [myDoneCount, total]);
 
+  // Show "behind" popup whenever partner overtakes us or widens the gap by 5
+  useEffect(() => {
+    const gap     = partnerDoneCount - myDoneCount;
+    const prevGap = prevPartnerDone.current - prevDone.current;
+
+    const justOvertaken    = gap > 0 && prevGap <= 0;
+    const gapWidenedBy5    = gap > 0 && Math.floor(gap / 5) > Math.floor(Math.max(prevGap, 0) / 5);
+
+    if (justOvertaken || gapWidenedBy5) {
+      setShowBehind(true);
+      clearTimeout(behindTimer.current);
+      behindTimer.current = setTimeout(() => setShowBehind(true), 6000);
+    }
+
+    prevPartnerDone.current = partnerDoneCount;
+    prevDone.current        = myDoneCount;
+  }, [myDoneCount, partnerDoneCount]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cleanup on unmount
+  useEffect(() => () => clearTimeout(behindTimer.current), []);
+
+  const gap = partnerDoneCount - myDoneCount;
+
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)', paddingBottom:80, position:'relative' }}>
       <Scene3D />
       <Confetti trigger={confetti} />
+
+      {/* ── Behind notification ── */}
+      <BehindNotification
+        visible={showBehind}
+        gap={gap}
+        partnerName={partnerName}
+        onDismiss={() => setShowBehind(false)}
+      />
 
       {/* Grid overlay */}
       <div style={{
