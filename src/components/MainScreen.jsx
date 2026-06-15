@@ -194,7 +194,7 @@ export default function MainScreen({
 }) {
   const [tab, setTab]             = useState('phases');
   const [confetti, setConfetti]   = useState(0);
-  const [showBehind, setShowBehind] = useState(true);
+  const [showBehind, setShowBehind] = useState(false);
   const prevDone                  = useRef(myDoneCount);
   const prevPartnerDone           = useRef(partnerDoneCount);
   const behindTimer               = useRef(null);
