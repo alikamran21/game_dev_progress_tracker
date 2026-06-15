@@ -9,90 +9,67 @@ import Confetti from './Confetti';
 
 /* ── Behind notification popup ─────────────────────────────────── */
 function BehindNotification({ visible, gap, partnerName, onDismiss }) {
+  if (!visible) return null;
+  const displayGap = gap > 0 ? gap : 1;
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          key="behind-notif"
-          initial={{ opacity: 0, y: -24, scale: 0.92 }}
-          animate={{ opacity: 1, y: 0,  scale: 1    }}
-          exit={{    opacity: 0, y: -16, scale: 0.95 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-          onClick={onDismiss}
-          style={{
-            position: 'fixed',
-            top: 80,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 9999,
-            width: 'min(92vw, 360px)',
-            borderRadius: 18,
-            overflow: 'hidden',
-            background: 'rgba(15,10,22,0.82)',
-            border: '1px solid rgba(255,80,80,0.35)',
-            backdropFilter: 'blur(22px)',
-            WebkitBackdropFilter: 'blur(22px)',
-            boxShadow: '0 0 0 1px rgba(255,255,255,0.04), 0 12px 48px rgba(220,50,50,0.28)',
-            cursor: 'pointer',
-          }}
-        >
-          {/* red glow strip at top */}
+    <div
+      onClick={onDismiss}
+      style={{
+        position: 'fixed',
+        top: 80,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 9999,
+        width: 'min(92vw, 360px)',
+        borderRadius: 18,
+        overflow: 'hidden',
+        background: 'rgba(15,10,22,0.95)',
+        border: '1px solid rgba(255,80,80,0.5)',
+        backdropFilter: 'blur(22px)',
+        WebkitBackdropFilter: 'blur(22px)',
+        boxShadow: '0 0 0 1px rgba(255,255,255,0.04), 0 12px 48px rgba(220,50,50,0.4)',
+        cursor: 'pointer',
+      }}
+    >
+      {/* red glow strip at top */}
+      <div style={{
+        height: 4,
+        background: 'linear-gradient(90deg,#ff3c3c,#ff8c42,#ff3c3c)',
+      }} />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px 16px' }}>
+        <div style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}>🔥</div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            height: 3,
-            background: 'linear-gradient(90deg,#ff3c3c,#ff8c42,#ff3c3c)',
-            backgroundSize: '200% 100%',
-            animation: 'behindSlide 1.8s linear infinite',
-          }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px 16px' }}>
-            {/* pulsing emoji */}
-            <motion.div
-              animate={{ scale: [1, 1.25, 1] }}
-              transition={{ duration: 0.7, repeat: Infinity, repeatDelay: 1.2 }}
-              style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}
-            >
-              🔥
-            </motion.div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
-                textTransform: 'uppercase', color: '#ff5a5a',
-                fontFamily: 'var(--font)', marginBottom: 3,
-              }}>
-                You&apos;re behind!
-              </div>
-              <div style={{
-                fontSize: 14, fontWeight: 700, color: 'var(--text)',
-                fontFamily: 'var(--font-body)', lineHeight: 1.35,
-              }}>
-                {partnerName} is{' '}
-                <span style={{ color: '#ff7a7a' }}>{gap} topic{gap !== 1 ? 's' : ''} ahead</span>
-                {' '}— pick up the pace!
-              </div>
-            </div>
-
-            {/* dismiss X */}
-            <div style={{
-              fontSize: 20, color: 'rgba(255,255,255,0.25)',
-              lineHeight: 1, flexShrink: 0, fontWeight: 300,
-            }}>×</div>
+            fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: '#ff5a5a',
+            fontFamily: 'var(--font)', marginBottom: 3,
+          }}>
+            You&apos;re behind!
           </div>
+          <div style={{
+            fontSize: 14, fontWeight: 700, color: '#ffffff',
+            fontFamily: 'var(--font-body)', lineHeight: 1.35,
+          }}>
+            {partnerName} is{' '}
+            <span style={{ color: '#ff7a7a' }}>{displayGap} topic{displayGap !== 1 ? 's' : ''} ahead</span>
+            {' '}— pick up the pace!
+          </div>
+        </div>
 
-          {/* countdown drain bar */}
-          <motion.div
-            initial={{ scaleX: 1 }}
-            animate={{ scaleX: 0 }}
-            transition={{ duration: 6, ease: 'linear' }}
-            style={{
-              height: 3,
-              background: 'linear-gradient(90deg,#ff3c3c,#ff8c42)',
-              transformOrigin: 'left',
-            }}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+        <div style={{
+          fontSize: 20, color: 'rgba(255,255,255,0.4)',
+          lineHeight: 1, flexShrink: 0, fontWeight: 300,
+        }}>×</div>
+      </div>
+
+      {/* red bottom bar */}
+      <div style={{
+        height: 3,
+        background: 'linear-gradient(90deg,#ff3c3c,#ff8c42)',
+      }} />
+    </div>
   );
 }
 
@@ -217,7 +194,7 @@ export default function MainScreen({
 }) {
   const [tab, setTab]             = useState('phases');
   const [confetti, setConfetti]   = useState(0);
-  const [showBehind, setShowBehind] = useState(false);
+  const [showBehind, setShowBehind] = useState(true);
   const prevDone                  = useRef(myDoneCount);
   const prevPartnerDone           = useRef(partnerDoneCount);
   const behindTimer               = useRef(null);
@@ -243,7 +220,7 @@ export default function MainScreen({
     if (justOvertaken || gapWidenedBy5) {
       setShowBehind(true);
       clearTimeout(behindTimer.current);
-      behindTimer.current = setTimeout(() => setShowBehind(true), 6000);
+      behindTimer.current = setTimeout(() => setShowBehind(false), 6000);
     }
 
     prevPartnerDone.current = partnerDoneCount;
